@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useRouter } from "next/navigation";
 import { CommunityDetailDialog } from "@/components/community-detail-dialog"
 import { MessageCircle, Sparkles, Bookmark, Settings, Heart, Upload, Trash2, Loader2, MessageSquare } from "lucide-react"
 import Link from "next/link"
@@ -455,6 +456,27 @@ const fetchPostDetail = async (postId: number) => {
       alert("삭제 중 오류가 발생했습니다.");
     }
   };
+
+  const handleWithdraw = async () => {
+    if (!window.confirm("정말로 회원탈퇴 하시겠습니까? 모든 데이터가 영구적으로 삭제되며, 복구할 수 없습니다.")) {
+      return;
+    }
+    const token = localStorage.getItem("accessToken");
+    if (!token) { alert("로그인이 필요합니다."); return; }
+    try {
+      const response = await fetch(`${baseUrl}/auth/withdraw`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("회원탈퇴에 실패했습니다.");
+      localStorage.removeItem("accessToken");
+      alert("회원탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.");
+      router.push("/");
+    } catch (error) {
+      console.error(error);
+      alert("회원탈퇴 중 오류가 발생했습니다.");
+    }
+  };
   
   // --- 렌더링 ---
   if (isLoading) {
@@ -527,6 +549,15 @@ const fetchPostDetail = async (postId: number) => {
                   <Button size="sm" variant="outline" onClick={handleEdit}>
                     <Settings className="h-4 w-4 mr-2" />
                     프로필 수정
+                  </Button>
+                  <p></p>
+                  <Button 
+                    size="sm" 
+                    variant="link" 
+                    className="text-destructive h-auto p-0"
+                    onClick={handleWithdraw}
+                  >
+                    회원탈퇴
                   </Button>
                 </>
               ) : (
